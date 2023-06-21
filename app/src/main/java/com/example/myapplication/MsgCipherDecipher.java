@@ -1,13 +1,17 @@
 package com.example.myapplication;
-import android.os.Build;
 
+
+
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.security.*;
-import java.security.spec.ECGenParameterSpec;
+import java.security.cert.CertificateException;
+
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.security.spec.ECPoint;
+
 import java.util.Base64;
-import java.util.Base64.Encoder;
+
 import java.nio.ByteBuffer;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.*;
@@ -17,6 +21,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 
 public class MsgCipherDecipher{
+
 	 private SecureRandom random;
 	 public static final int AES_KEY_SIZE = 256;
 	    public static final int GCM_IV_LENGTH = 12;
@@ -38,54 +43,42 @@ public class MsgCipherDecipher{
 	    public byte[] getPubkeyA() {
 	    	return apubKey;
 	    }
-
-	public void establishKeys(int keysize) throws Exception {
-		ECGenParameterSpec ecGenSpec = new ECGenParameterSpec("secp256r1");
-	      KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC");
-	      
-	      SecureRandom random = new SecureRandom();
-	      keyGen.initialize(ecGenSpec, random);
-	      keyGen.initialize(keysize);
-
-	      this.akey = keyGen.generateKeyPair();
-	      this.bkey = keyGen.generateKeyPair();
-	
-	      this.apubKey = akey.getPublic().getEncoded();
-	      this.bpubKey = bkey.getPublic().getEncoded();
-	      
-	}
 	
 	
 	
-	public static byte[] genKey(byte[] pubKeyEnc, PrivateKey privkey) throws Exception{
+	public static byte[] establishKeyAgreement(byte[] publicKey, String privKeyAlies, String password)
+			throws InvalidKeyException, NoSuchAlgorithmException, KeyStoreException,
+			CertificateException, IOException, UnrecoverableEntryException,
+			InvalidKeySpecException {
+			KeyGeneratorForKeyStore gk = new KeyGeneratorForKeyStore();
+		PrivateKey privateKey = gk.getPrivateKey(privKeyAlies, password);
 		KeyAgreement keyAgree = KeyAgreement.getInstance("ECDH");
-		keyAgree.init(privkey);
-		
-		//deencoding public key
-		X509EncodedKeySpec x509KeySpec  = new X509EncodedKeySpec(pubKeyEnc);
-		KeyFactory keyFac = KeyFactory.getInstance("EC");
-        PublicKey pubkey = keyFac.generatePublic(x509KeySpec);
-        
-		keyAgree.doPhase(pubkey, true);
+		keyAgree.init(privateKey);
+		KeyFactory keyFactory = KeyFactory.getInstance("ECDH");
+		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKey);
+		keyAgree.doPhase(keyFactory.generatePublic(keySpec), true);
 		byte[] key = keyAgree.generateSecret();
 		
 		return key;
 	}
 	
 	public String getPubKeyAString() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
 			return Base64.getEncoder().encodeToString(apubKey).substring(36);
-		}
 	}
 	
 	public String getPubKeyBString() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			return Base64.getEncoder().encodeToString(bpubKey).substring(36);
-		}
+
 	}
 	
-	public byte[] encrypt(byte[] plaintext, PrivateKey a, byte[] b) throws Exception {
-		
+
+	public byte[] encrypt(byte[] plaintext, String AkeyPairAlias, byte[] encodedPubKeyB, String password)
+			throws KeyStoreException, CertificateException, IOException,
+			NoSuchAlgorithmException, NoSuchPaddingException, UnrecoverableEntryException,
+			InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException,
+			BadPaddingException, InvalidKeySpecException {
+
 		byte[] iv = new byte[GCM_IV_LENGTH];
 		SecureRandom random = new SecureRandom();
 		random.nextBytes(iv);
@@ -93,7 +86,7 @@ public class MsgCipherDecipher{
 		Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
 		GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
 		
-		byte[] key = genKey(b, a);
+		byte[] key = establishKeyAgreement(encodedPubKeyB, AkeyPairAlias, password);
 		SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 		
 		
@@ -106,11 +99,12 @@ public class MsgCipherDecipher{
         return byteBuffer.array();
 	}
 	
-	public byte[] decrypt(byte[] ciphertext, PrivateKey b, byte[] a) throws Exception{
+	public byte[] decrypt(byte[] ciphertext, String alies, byte[] encodedAKey, String password)
+			throws Exception{
 		Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
 		GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, ciphertext, 0, GCM_IV_LENGTH);
 		
-		byte[] key = genKey(a, b);
+		byte[] key = establishKeyAgreement(encodedAKey, alies, password);
 		
 		SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 		cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmParameterSpec);
@@ -119,5 +113,24 @@ public class MsgCipherDecipher{
 		byte[] plaintext = cipher.doFinal(ciphertext, GCM_IV_LENGTH, ciphertext.length - GCM_IV_LENGTH);
 		
 		return plaintext;
+
+		}
+	public String returnFinalMessage(String stringtext) throws Exception{
+			final String password = null;
+		KeyGeneratorForKeyStore gk = new KeyGeneratorForKeyStore();
+		gk.generatePairOfKeys("akey");
+		gk.generatePairOfKeys("bkey");
+		byte[] text = stringtext.getBytes();
+
+		byte[] ciphertext = encrypt(text,"akey", gk.getPublicKey("bkey"), password);
+		System.out.println(new String("Ciphertext: " + Base64.getEncoder().encodeToString(ciphertext)));
+		byte[] plaintext = decrypt(ciphertext, "bkey", gk.getPublicKey("akey"), password);
+		String decryptedText = new String(plaintext);
+		String output = "Decrypted text: " + decryptedText.toString() + "\n";
+		output += "Public key A: " + Base64.getEncoder().encodeToString(gk.getPublicKey("akey")) + "\n";
+		output += "Public key B: " + Base64.getEncoder().encodeToString(gk.getPublicKey("bkey")) + "\n";
+
+		return output;
+
 	}
 }

@@ -1,17 +1,10 @@
 package com.example.myapplication;
-import static java.security.cert.CertificateFactory.*;
-
-import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
-import android.security.keystore.KeyProtection;
-import android.security.keystore.WrappedKeyEntry;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
-import java.security.Key;
+
 import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -22,9 +15,10 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.UnrecoverableEntryException;
-import java.security.UnrecoverableKeyException;
+
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+
 import java.security.cert.CertificateFactory;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.ECGenParameterSpec;
@@ -32,10 +26,9 @@ import java.security.KeyPair;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
-import javax.security.cert.X509Certificate;
 
 
-public class GeneratingKeys {
+public class KeyGeneratorForKeyStore {
 private KeyPair keyPair;
 private byte[] pubKey;
 
@@ -45,7 +38,8 @@ private KeyStore ks;
 
 
 
-        public void generatePairOfKeys(String alias) throws KeyStoreException, CertificateException, IOException,
+        public void generatePairOfKeys(String alias)
+                throws KeyStoreException, CertificateException, IOException,
                 NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException,
                 InvalidKeySpecException {
 
@@ -62,11 +56,13 @@ private KeyStore ks;
 
             new KeyGenParameterSpec.Builder(alias,
                     KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                    //.setUserAuthenticationRequired(true)
+                    .setUserAuthenticationRequired(true)
+                    .setInvalidatedByBiometricEnrollment(true)
                     .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                     .setAlgorithmParameterSpec(alspec)
                     .setKeySize(256)
+                    .setRandomizedEncryptionRequired(false)
                     .build();
             //generate key pair
             SecureRandom random = new SecureRandom();
@@ -80,11 +76,13 @@ private KeyStore ks;
             byte[] pubKey = keyPair.getPublic().getEncoded();
 
             Certificate[] cert = ks.getCertificateChain(alias);
-            KeyStore.PrivateKeyEntry mPrivatekey = new KeyStore.PrivateKeyEntry(keyPair.getPrivate(), cert);
+            KeyStore.PrivateKeyEntry mPrivatekey =
+                    new KeyStore.PrivateKeyEntry(keyPair.getPrivate(), cert);
 
-            String password = "changeit";
+            String password = null;
 
-            KeyStore.ProtectionParameter protectionParam = new KeyStore.PasswordProtection(password.toCharArray());
+            KeyStore.ProtectionParameter protectionParam =
+                    new KeyStore.PasswordProtection(null);
             ks.setEntry("privKeyAlias", mPrivatekey, protectionParam);
 
 
@@ -92,40 +90,32 @@ private KeyStore ks;
 
 
 
-    public PrivateKey getPrivKey(final String alias, final String password) throws KeyStoreException, UnrecoverableEntryException, NoSuchAlgorithmException {
-        KeyStore.ProtectionParameter protectionParam = new KeyStore.PasswordProtection( password.toCharArray());
-        final PrivateKey key =  ((KeyStore.PrivateKeyEntry)ks.getEntry(alias, protectionParam)).getPrivateKey();
+     public PrivateKey getPrivateKey(final String alias, final String password)
+             throws KeyStoreException, UnrecoverableEntryException,
+             NoSuchAlgorithmException, CertificateException, IOException {
+            KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+            keyStore.load(null);
+        KeyStore.ProtectionParameter protectionParam =
+                new KeyStore.PasswordProtection();
+        final PrivateKey key =
+                ((KeyStore.PrivateKeyEntry)keyStore.getEntry(alias, protectionParam)).getPrivateKey();
 
         return key;
     }
 
-    public  PublicKey getPubKey(String alias) throws KeyStoreException {
+    static public byte[] getPublicKey(String alias)
+            throws CertificateException, IOException,
+            NoSuchAlgorithmException, KeyStoreException {
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        Certificate cert = keyStore.getCertificate(alias);
 
-        final Certificate cert = ks.getCertificate(alias);
-        final PublicKey publicKey = cert.getPublicKey();
-
-        return publicKey;
+    byte[] publicKey = cert.getPublicKey().getEncoded();
+            return publicKey;
     }
+}
 
-    }
 
-    class TestDrive {
-
-        public static void main(String[] args) {
-
-            String exceptionMessage;
-            GeneratingKeys gk = new GeneratingKeys();
-            try {
-                gk.generatePairOfKeys("akey");
-                gk.getPubKey("akey");
-                gk.getPrivKey("akey", "changeit");
-
-            } catch (Exception e) {
-                exceptionMessage = e.getMessage();
-                System.out.println(e.getMessage());
-            }
-        }
-    }
 
 
 

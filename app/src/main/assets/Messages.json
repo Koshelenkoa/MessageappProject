@@ -1,0 +1,146 @@
+[
+  {
+    "messageId": "9d3037f0-7cc2-4f6a-a5f9-d61b3457f1c1",
+    "sender": "Alice",
+    "recipient": "Bob",
+    "chat": "c1",
+    "isSent": true,
+    "timeStamp": 1630918800000,
+    "data": "Hi, how are you doing?"
+  },
+  {
+    "messageId": "bbd15d3f-5eb7-4b9b-b94e-7e8b1f8826d2",
+    "sender": "Bob",
+    "recipient": "Alice",
+    "chat": "c1",
+    "isSent": true,
+    "timeStamp": 1630922400000,
+    "data": "Hey Alice, I'm good. How about you?"
+  },
+  {
+    "messageId": "c483ed98-8b77-4c6e-91e7-2c8398488659",
+    "sender": "Alice",
+    "recipient": "Bob",
+    "chat": "c1",
+    "isSent": true,
+    "timeStamp": 1630926000000,
+    "data": "I'm doing well, thanks for asking. Have you been up to anything interesting lately?"
+  },
+  {
+    "messageId": "9a4f9a67-c065-4b4e-9e3d-8e68ad8d9c0e",
+    "sender": "Bob",
+    "recipient": "Alice",
+    "chat": "c1",
+    "isSent": true,
+    "timeStamp": 1630929600000,
+    "data": "Not much, just working and spending time with family. How about you?"
+  },
+  {
+    "messageId": "a5e70d3b-6aa3-4ee6-93de-ffba3b30b9e9",
+    "sender": "Alice",
+    "recipient": "Bob",
+    "chat": "c1",
+    "isSent": true,
+    "timeStamp": 1630933200000,
+    "data": "I've been keeping busy with work too. Do you have any plans for the weekend?"
+  },
+  {
+    "messageId": "f88b5ec4-8df1-4c94-a9cf-80ce20211ee5",
+    "sender": "Bob",
+    "recipient": "Alice",
+    "chat": "c1",
+    "isSent": true,
+    "timeStamp": 1630936800000,
+    "data": "Not yet, but I might go hiking if the weather is nice. How about you?"
+  },
+  {
+    "messageId": "0a05c80c-4dd3-4eeb-aa0d-9a3e08373c44",
+    "sender": "Alice",
+    "recipient": "Bob",
+    "chat": "c1",
+    "isSent": true,
+    "timeStamp": 1630940400000,
+    "data": "That sounds like a great idea! I was thinking of going for a bike ride."
+  },
+  {
+    "messageId": "ef89a5aa-2bc5-4424-9bda-0e3000a3c266",
+    "sender": "Bob",
+    "recipient": "Alice",
+    "chat": "c1",
+    "isSent": true,
+    "timeStamp": 1630944000000,
+    "data": "Nice, we'll both be enjoying the outdoors then. Let's hope for good weather!"
+  },
+    {
+      "messageId": "9d3037f0-7cc2-4f6a-a5f9-d61b3457f1c1",
+      "sender": "Alice",
+      "recipient": "Susie",
+      "chat": "c2",
+      "isSent": true,
+      "timeStamp": 1630918800000,
+      "data": "Hi, how are you doing?"
+    },
+    {
+      "messageId": "bbd15d3f-5eb7-4b9b-b94e-7e8b1f8826d2",
+      "sender": "Susie",
+      "recipient": "Alice",
+      "chat": "c2",
+      "isSent": true,
+      "timeStamp": 1630922400000,
+      "data": "Hey Alice, I'm good. How about you?"
+    },
+    {
+      "messageId": "c483ed98-8b77-4c6e-91e7-2c8398488659",
+      "sender": "Alice",
+      "recipient": "Susie",
+      "chat": "c2",
+      "isSent": true,
+      "timeStamp": 1630926000000,
+      "data": "I'm doing well, thanks for asking. Have you been up to anything interesting lately?"
+    },
+    {
+      "messageId": "9a4f9a67-c065-4b4e-9e3d-8e68ad8d9c0e",
+      "sender": "Susie",
+      "recipient": "Alice",
+      "chat": "c2",
+      "isSent": true,
+      "timeStamp": 1630929600000,
+      "data": "Not much, just working and spending time with family. How about you?"
+    },
+    {
+      "messageId": "a5e70d3b-6aa3-4ee6-93de-ffba3b30b9e9",
+      "sender": "Alice",
+      "recipient": "Susie",
+      "chat": "c2",
+      "isSent": true,
+      "timeStamp": 1630933200000,
+      "data": "I've been keeping busy with work too. Do you have any plans for the weekend?"
+    },
+    {
+      "messageId": "f88b5ec4-8df1-4c94-a9cf-80ce20211ee5",
+      "sender": "Susie",
+      "recipient": "Alice",
+      "chat": "c2",
+      "isSent": true,
+      "timeStamp": 1630936800000,
+      "data": "Not yet, but I might go hiking if the weather is nice. How about you?"
+    },
+    {
+      "messageId": "0a05c80c-4dd3-4eeb-aa0d-9a3e08373c44",
+      "sender": "Alice",
+      "recipient": "Susie",
+      "chat": "c2",
+      "isSent": true,
+      "timeStamp": 1630940400000,
+      "data": "That sounds like a great idea! I was thinking of going for a bike ride."
+    },
+    {
+      "messageId": "ef89a5aa-2bc5-4424-9bda-0e3000a3c266",
+      "sender": "Susie",
+      "recipient": "Alice",
+      "chat": "c2",
+      "isSent": true,
+      "timeStamp": 1630944000000,
+      "data": "Nice, we'll both be enjoying the outdoors then. Let's hope for good weather!"
+    }
+  ]

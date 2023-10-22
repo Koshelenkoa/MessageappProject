@@ -1,0 +1,180 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    id 'idea'
+    id("org.jetbrains.dokka") version "1.8.20"
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.gms.google-services'
+    id 'com.google.dagger.hilt.android'
+    id 'com.google.devtools.ksp'
+}
+
+android {
+    namespace 'com.example.myapplication'
+    compileSdk 34
+
+
+    hilt {
+        enableAggregatingTask = true
+    }
+
+    defaultConfig {
+        applicationId "com.example.myapplication"
+        minSdk 34
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "com.example.myapplication.CustomTestRunner"
+        vectorDrawables {
+            useSupportLibrary true
+        }
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        compose true
+        viewBinding true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion compose_ui_version
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+
+}
+
+dependencies {
+    // Compose and UI-related libraries
+    implementation platform('androidx.compose:compose-bom:2023.09.00')
+    implementation 'androidx.compose.ui:ui-graphics'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.camera:camera-core:1.2.3'
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.ui:ui-framework:0.1.0-dev10'
+    implementation "androidx.compose.ui:ui-tooling-preview:1.5.2"
+    implementation 'androidx.compose.material:material:1.5.1'
+    implementation "androidx.compose.ui:ui-tooling:1.5.2"
+    implementation 'androidx.constraintlayout:constraintlayout-compose:1.0.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.annotation:annotation:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.2'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
+    implementation 'androidx.work:work-testing:2.8.1'
+    implementation platform('androidx.compose:compose-bom:2023.03.00')
+    testImplementation 'org.testng:testng:7.8.0'
+    androidTestImplementation platform('androidx.compose:compose-bom:2023.03.00')
+    debugImplementation "androidx.compose.ui:ui-tooling:1.5.2"
+    debugImplementation "androidx.compose.ui:ui-test-manifest:1.5.2"
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2'
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:1.5.2"
+    androidTestImplementation platform('androidx.compose:compose-bom:2023.09.00')
+    implementation "androidx.compose.material:material-icons-extended:1.5.2"
+
+// Networking and API libraries
+    implementation 'com.android.volley:volley:1.2.1'
+    implementation('io.ktor:ktor-client-core:2.3.4')
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
+    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.48'
+    kspAndroidTest 'com.google.dagger:hilt-android-compiler:2.48'
+    ksp "com.google.dagger:hilt-compiler:2.48"
+
+// Firebase related libraries
+    implementation platform('com.google.firebase:firebase-bom:32.3.1')
+    implementation 'com.google.firebase:firebase-analytics:21.3.0'
+    implementation 'com.google.firebase:firebase-messaging:23.2.1'
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+// Dependency injection and Dagger Hilt
+    implementation 'com.google.dagger:hilt-android:2.48'
+    ksp 'com.google.dagger:hilt-compiler:2.48'
+
+
+// Data storage and persistence
+    def room_version = "2.5.2"
+    implementation "androidx.room:room-runtime:$room_version"
+    ksp "android.arch.persistence.room:compiler:1.1.1"
+    implementation "androidx.room:room-ktx:$room_version"
+    ksp "androidx.room:room-compiler:$room_version"
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation 'androidx.work:work-runtime-ktx:2.8.1'
+    def paging_version = "3.2.1"
+    implementation "androidx.paging:paging-runtime:$paging_version"
+
+// Other utility libraries
+    implementation 'com.github.androidmads:QRGenerator:1.0.1'
+    implementation 'nu.aaro.gustav:passwordstrengthmeter:0.4'
+    implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha06'
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.biometric:biometric-ktx:1.2.0-alpha05'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
+    implementation 'androidx.activity:activity-compose:1.7.2'
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
+    implementation 'me.dm7.barcodescanner:zxing:1.9.8'
+    implementation 'com.google.mlkit:barcode-scanning:17.2.0'
+    implementation 'androidx.camera:camera-view:1.2.3'
+    implementation 'androidx.camera:camera-lifecycle:1.2.3'
+    implementation "io.github.jisungbin:multifab:1.0.0"
+    testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
+    testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
+
+// Testing libraries
+    testImplementation "androidx.room:room-testing:$room_version"
+    androidTestImplementation 'org.mockito:mockito-core:5.5.0'
+    androidTestImplementation 'com.linkedin.dexmaker:dexmaker-mockito:2.28.3'
+    // Core library
+    androidTestImplementation "androidx.test:core:$androidXTestVersion"
+
+    // AndroidJUnitRunner and JUnit Rules
+    androidTestImplementation "androidx.test:runner:$testRunnerVersion"
+    androidTestImplementation "androidx.test:rules:$testRulesVersion"
+
+    // Assertions
+    androidTestImplementation "androidx.test.ext:junit:$testJunitVersion"
+    androidTestImplementation "androidx.test.ext:truth:$truthVersion"
+
+    // Espresso dependencies
+    androidTestImplementation "androidx.test.espresso:espresso-core:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-contrib:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-intents:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-accessibility:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-web:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso.idling:idling-concurrent:$espressoVersion"
+
+    // The following Espresso dependency can be either "implementation",
+    // or "androidTestImplementation", depending on whether you want the
+    // dependency to appear on your APK’"s compile classpath or the test APK
+    // classpath.
+    androidTestImplementation "androidx.test.espresso:espresso-idling-resource:$espressoVersion"
+
+}

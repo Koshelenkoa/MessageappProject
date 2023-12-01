@@ -4,12 +4,15 @@
 
     <uses-feature
         android:name="android.hardware.camera"
-        android:required="false" />
+        android:required="true"/>
 
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
@@ -44,6 +47,11 @@
             android:label="@string/title_activity_chat_list"
             android:theme="@style/Theme.MyApplication" />
         <activity
+            android:name=".ui.activities.SetNameActivity"
+            android:exported="false"
+            android:label="@string/title_activity_set_name"
+            android:theme="@style/Theme.MyApplication" />
+        <activity
             android:name=".ui.activities.ChatActivity"
             android:exported="false"
             android:label="@string/title_activity_chat"
@@ -66,9 +74,6 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <service
-            android:name=".services.ChatService"
-            android:exported="false"></service>
     </application>
 
 </manifest>

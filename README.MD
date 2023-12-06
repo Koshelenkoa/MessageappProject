@@ -13,3 +13,9 @@
 
 ## Backend 
 Encrypted messages are stored in FireStore and send to the device through Firebase Messaging [source code](https://github.com/Koshelenkoa/secureMessagingFunctions)
+
+## Screenshots
+![chat screen](/screenshots/chat_screen.png?raw=true)
+![create chat](/screenshots/create_chat_scren.png?raw=true)
+![login screen](/screenshots/login_screen.png?raw=true)
+![home screen](/screenshots/home_screen.png?raw=true)

@@ -276,17 +276,15 @@ fun ImageTile(uri: Uri,
 fun ShowMessage(
     messageItem: MessageItem, selectionScreen: () -> Boolean,
     selectMessages: (String) -> Unit, selectionScreenOn: () -> Unit,
-    resend: (MessageItem) -> Unit,
-    onClick: Unit = DialogOnResend(
-        onDismissRequest = { },
-        onConfirmation = { resend(messageItem) }),
-
+    resend: (MessageItem) -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
     if (showDialog) {
         DialogOnResend(
-            onDismissRequest = { showDialog = false},
-            onConfirmation = {resend(messageItem)} )
+            onDismissRequest = { showDialog = false },
+            onConfirmation = {
+                resend(messageItem)
+                showDialog = false} )
     }
     val paddingValues = PaddingValues(end = 6.dp, bottom = 6.dp, top = 2.dp, start = 6.dp)
     val iconSize = 15.dp

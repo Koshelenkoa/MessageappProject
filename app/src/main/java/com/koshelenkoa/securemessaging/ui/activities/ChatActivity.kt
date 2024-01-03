@@ -1,8 +1,6 @@
 package com.koshelenkoa.securemessaging.ui.activities
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -13,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.koshelenkoa.securemessaging.compose.ChatScreen
 import com.koshelenkoa.securemessaging.ui.activities.ui.theme.MyApplicationTheme
 import com.koshelenkoa.securemessaging.viewModels.ChatViewModel

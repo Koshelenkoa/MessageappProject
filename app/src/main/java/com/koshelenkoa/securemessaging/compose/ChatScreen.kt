@@ -2,7 +2,7 @@ package com.koshelenkoa.securemessaging.compose
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
+import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import android.util.Size
@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -27,7 +29,6 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.ButtonColors
 import androidx.compose.material.Card
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
@@ -78,10 +79,10 @@ import com.koshelenkoa.securemessaging.R
 import com.koshelenkoa.securemessaging.data.local.Message
 import com.koshelenkoa.securemessaging.data.local.room.MessageItem
 import com.koshelenkoa.securemessaging.ui.activities.ChatList
-import com.koshelenkoa.securemessaging.util.Composables.Companion.DynamicGrid
+import com.koshelenkoa.securemessaging.ui.activities.GalleryActivity
 import com.koshelenkoa.securemessaging.util.SharedPrefsHelper
 import com.koshelenkoa.securemessaging.viewModels.ChatViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -149,9 +150,9 @@ fun ChatScreen(
         },
         bottomBar = {
             TextBox(
-                viewModel.mText,
-                { viewModel.updateTextBox(it) },
-                { viewModel.sendMessage() },
+                text = viewModel.mText,
+                updateTextBox = { viewModel.updateTextBox(it) },
+                encryptMessage = { viewModel.sendMessage() },
                 pickMedia,
                 viewModel.attachments,
                 { viewModel.unattach(it) },
@@ -252,7 +253,8 @@ fun ImageTile(uri: Uri,
         Image(
             bitmap = bitmap.asImageBitmap(), "ImageTile",
             contentScale = ContentScale.Crop,
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier
+                .size(100.dp)
                 .padding(3.dp)
 
         )
@@ -276,15 +278,19 @@ fun ImageTile(uri: Uri,
 fun ShowMessage(
     messageItem: MessageItem, selectionScreen: () -> Boolean,
     selectMessages: (String) -> Unit, selectionScreenOn: () -> Unit,
-    resend: (MessageItem) -> Unit
+    resend: (MessageItem) -> Unit,
+    context: Context
 ) {
+    val picHeight = 300
+    val picWidth = 300
     var showDialog by remember { mutableStateOf(false) }
     if (showDialog) {
         DialogOnResend(
             onDismissRequest = { showDialog = false },
             onConfirmation = {
-                resend(messageItem)
-                showDialog = false} )
+                    resend(messageItem)
+                    showDialog = false
+                } )
     }
     val paddingValues = PaddingValues(end = 6.dp, bottom = 6.dp, top = 2.dp, start = 6.dp)
     val iconSize = 15.dp
@@ -321,19 +327,66 @@ fun ShowMessage(
                 },
                 content = {
                     val content = messageItem.messageData
+                    val uris = content.attachments?.map{string -> Uri.parse(string)}
                     Column {
                         if(content.text != null) {
-                            Text(
-                                text = content.text,
-                                modifier = Modifier.padding(8.dp, 8.dp, 8.dp, 0.dp),
-                                fontSize = SharedPrefsHelper.getFontSize(LocalContext.current).sp,
-                                color = when (messageItem.isMine) {
-                                    true -> MaterialTheme.colorScheme.onPrimary
-                                    else -> MaterialTheme.colorScheme.onSecondary
-                                }
-                            )
+                            if (content.text.isNotBlank()) {
+                                Text(
+                                    text = content.text,
+                                    modifier = Modifier.padding(8.dp, 8.dp, 8.dp, 0.dp),
+                                    fontSize = SharedPrefsHelper.getFontSize(LocalContext.current).sp,
+                                    color = when (messageItem.isMine) {
+                                        true -> MaterialTheme.colorScheme.onPrimary
+                                        else -> MaterialTheme.colorScheme.onSecondary
+                                    }
+                                )
+                            }
                         }
+                        if(uris != null){
+                            if(uris.isNotEmpty()) {
+                                val size = content.attachments.size
+                                if (size == 1) {
+                                    val bitmap = context.contentResolver.loadThumbnail(
+                                        uris[0],
+                                        Size(picWidth*3, picHeight*3),
+                                        null)
+                                    Image(
+                                        bitmap = bitmap.asImageBitmap(), "ImageTile",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .height(picHeight.dp)
+                                            .width((picWidth*0.9).dp)
+                                            .padding(3.dp)
 
+                                    )
+                                }else{
+                                    val second = size/2
+                                    val first = second + size%2
+
+                                    Row {
+                                        Column {
+                                            for (i in 0..<size step 2) {
+                                                ImageView(
+                                                    index = i, height = picHeight / first,
+                                                    width = picWidth / 2, context = context,
+                                                    uris = uris.toTypedArray()
+                                                )
+                                            }
+                                        }
+                                        Column {
+                                            for (i in 1..<size step 2) {
+                                                ImageView(
+                                                    index = i, height = picHeight / second,
+                                                    width = picWidth / 2, context = context,
+                                                    uris = uris.toTypedArray()
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // status icon
                         when (messageItem.sent) {
                             Message.SENT -> {
                                 if (messageItem.time != null) {
@@ -395,16 +448,15 @@ fun DialogOnResend(
                 Text(text = stringResource(R.string.dialog_resend_title))
             },
             onDismissRequest = {
-                onDismissRequest
+                onDismissRequest()
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onConfirmation
+                        onConfirmation()
                     }
                 ) {
                     Text(stringResource(R.string.dialog_resend_button))
-                    onConfirmation
                 }
             },
             dismissButton = {
@@ -445,11 +497,46 @@ fun ShowMessages(
                         selectionScreen,
                         selectMessages,
                         selectionScreenOn,
-                        resend
+                        resend,
+                        LocalContext.current
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ImageView(uris:Array<Uri>, index:Int, height: Int, width: Int, context: Context){
+    val urisAsStrings = uris.map{ uri -> uri.toString()}.toTypedArray()
+    val uri  = uris[index]
+    Log.d("Chat Screen", uri.path.toString())
+    var bitmap: Bitmap? = null
+    try {
+       bitmap = context.contentResolver.loadThumbnail(
+            uri.normalizeScheme(),
+            Size(width * 3, height * 3),
+            null
+        )
+    }catch (e: Exception){
+        Log.d("ChatScreen", e.message.toString())
+    }
+    if (bitmap != null) {
+        Image(
+            modifier = Modifier
+                .clickable {
+                    val intent = Intent(context, GalleryActivity::class.java)
+                    intent.putExtra("index", index)
+                    intent.putExtra("uris", urisAsStrings)
+                    context.startActivity(intent)
+                }
+                .height(height.dp)
+                .width(width.dp)
+                .padding(3.dp),
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = "ImageTile",
+            contentScale = ContentScale.Crop,
+        )
     }
 }
 

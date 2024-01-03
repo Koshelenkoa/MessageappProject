@@ -14,10 +14,10 @@ class ChatForUI(
     companion object {
         fun createChatForUi(chat: Chat, lastMessage: Message?): ChatForUI {
             return if (lastMessage != null) {
-                val lastText = lastMessage.data!!.decodeToString()
-                val gson = GsonBuilder().create()
-                val messageData = gson.fromJson(lastText, MessageData::class.java)
-                val text = messageData.text ?: "attachment"
+                val messageData = lastMessage.getMessageData()
+                var text = messageData.text ?: "attachment"
+                if (text.isBlank())
+                    text = "${messageData.attachments?.size} photo(s)"
 
                 ChatForUI(
                     chat.chat_id,

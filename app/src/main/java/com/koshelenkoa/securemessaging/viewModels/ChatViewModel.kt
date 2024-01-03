@@ -1,9 +1,6 @@
 package com.koshelenkoa.securemessaging.viewModels
 
-import android.R.attr.data
-import android.R.attr.src
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.util.Log
@@ -23,8 +20,8 @@ import com.koshelenkoa.securemessaging.data.local.Message
 import com.koshelenkoa.securemessaging.data.local.MessageData
 import com.koshelenkoa.securemessaging.data.local.MessagesRepository
 import com.koshelenkoa.securemessaging.data.local.room.MessageItem
+import com.koshelenkoa.securemessaging.util.UploadManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -50,7 +47,6 @@ class ChatViewModel @Inject constructor(
     private var selectedMessages: MutableList<String?> = ArrayList()
     var mText by mutableStateOf("")
     var attachments : List<Uri> by mutableStateOf(emptyList())
-    private lateinit var login: String
     lateinit var messagePagingDataFlow: Flow<PagingData<MessageItem>>
     private val uid = FirebaseAuth.getInstance().uid
     private lateinit var messageEncryptor: MessageEncryption
@@ -145,30 +141,17 @@ class ChatViewModel @Inject constructor(
     }
 
     fun unattach(uri: Uri){
-        attachments.minus(uri)
+        attachments = attachments.minus(uri)
     }
 
-
-    fun getImageBytes(): Array<ByteArray>{
-        var imagesBytes: List<ByteArray> = emptyList()
-        for( image in attachments){
-            val srs = ImageDecoder.createSource(MainApplication.getApplication().baseContext.contentResolver, image)
-            val bitmap = ImageDecoder.decodeBitmap(srs)
-            val baos = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
-            val data = baos.toByteArray()
-            imagesBytes.plus(data)
-        }
-        Log.d(TAG, "Images attached")
-        return imagesBytes.toTypedArray()
-    }
-
-    fun sendMessage(messageText: String? = mText, messageAttachments: Array<ByteArray>? = getImageBytes()){
+    fun sendMessage(messageText: String? = mText, messageAttachments: List<String>? = attachments.map{uri -> uri.toString()}){
         if (!messageText.isNullOrEmpty() || !messageAttachments.isNullOrEmpty()) {
-            val messageData = MessageData(messageText!!.trim(), messageAttachments)
+            mText = ""
+            attachments = emptyList()
+            val messageData = MessageData(messageText!!.trim(), messageAttachments?.toTypedArray())
             val gson = Gson()
             val dataJson = gson.toJson(messageData)
-            var message = Message(
+            val message = Message(
                 messageId = UUID.randomUUID().toString(),
                 chat = uiState.value.chatId,
                 isSent = Message.PENDING,
@@ -176,19 +159,22 @@ class ChatViewModel @Inject constructor(
                 sender = uid!!,
                 timestamp = System.currentTimeMillis()
             )
-
-            message = messageEncryptor.encryptMessage(message)
-
-            mText = ""
-            attachments = emptyList()
-
-            val messageId = message.messageId
             CoroutineScope(Dispatchers.IO).launch {
-                messagesRepository.createMessage(message)
-                Log.d(TAG, "message saved")
-                requestSchedueler.sendRequest(
-                    functionName = "addMessageToServer",
-                    textToSend = message.toMap(),
+            val encryptedMessage = messageEncryptor.encryptMessage(message)
+            val messageId = message.messageId
+            messagesRepository.createMessage(encryptedMessage)
+            Log.d(TAG, "message saved")
+            try {
+                var urls = emptyList<String>()
+                if(messageAttachments != null && messageAttachments.isNotEmpty()) {
+                    urls = uploadImages(messageAttachments, messageEncryptor)
+                    Log.d(TAG, urls[0])
+                }
+            val transitMessage = message.toTransitMessage(urls)
+            val encryptedTransitMessage = messageEncryptor.encryptMessage(transitMessage)
+            requestSchedueler.sendRequest(
+                functionName = "addMessageToServer",
+                    textToSend = encryptedTransitMessage.toMap(),
                     onSuccess = { response ->
                         try {
                             val timestamp = response.toLong()
@@ -201,21 +187,46 @@ class ChatViewModel @Inject constructor(
                         messagesRepository.updateStatusFailed(messageId)
                     },
                 )
+                }catch (e: Exception){
+                messagesRepository.updateStatusFailed(messageId)
+            }
             }
         }
     }
 
     fun resend(message: MessageItem) {
+        Log.d(TAG, "resend")
         CoroutineScope(Dispatchers.IO).launch {
             val content = message.messageData
-
-            sendMessage(content.text, content.attachments)
             val messageId = message.messageId
             val messages = messagesRepository.getMessageById(messageId)
             messages.collect {
                 messagesRepository.deleteMessages(*it.toTypedArray())
             }
+            Log.d(TAG, "message deleted")
+            sendMessage(content.text, content.attachments?.toList())
         }
+    }
+
+    suspend fun uploadImages(attachments: List<String>, encryption: MessageEncryption): List<String>{
+        var attachmentsUrls = emptyList<String>()
+        for (attachment in attachments){
+            val uri = Uri.parse(attachment)
+            val srs = ImageDecoder.createSource(MainApplication.getApplication().baseContext.contentResolver, uri)
+            val bitmap = ImageDecoder.decodeBitmap(srs)
+            val stream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            val bitmapBytes = stream.toByteArray()
+            bitmap.recycle()
+
+            val encryptedBytes = encryption.encryptBytes(bitmapBytes)
+            val uploadManager = UploadManager()
+            val url = uploadManager.uploadImage(encryptedBytes)
+            if (url != null){
+                attachmentsUrls = attachmentsUrls.plus(url)
+            }
+        }
+        return attachmentsUrls
     }
 }
 

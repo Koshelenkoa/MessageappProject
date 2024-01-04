@@ -174,7 +174,7 @@ import com.koshelenkoa.securemessaging.viewModels.AuthenticationViewModel
             .setNegativeButtonText(context.resources.getString(R.string.biometric_prompt_negative_button))
             .build()
 
-        if (user == null || user.email != "$userLogin@email.com") {
+        try{
             val authManager = AuthManager()
             authManager.signInUser(
                 login = userLogin,
@@ -196,16 +196,22 @@ import com.koshelenkoa.securemessaging.viewModels.AuthenticationViewModel
                 },
                 onFailure = { exceptionMessage ->
                     // If sign in fails, display a message to the user.
-                    Log.w(TAG, "signInWithEmailAndPassword:failure $exceptionMessage")
-                    Toast.makeText(
-                        activity, "Authentication failed.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    updateUI(null)
+                    if(user != null && user.email.equals("$userLogin@email.com") && password!!.isNotBlank()) {
+                        biometricPrompt.authenticate(biometricPromptInfo)
+                    }else {
+                        Log.w(TAG, "signInWithEmailAndPassword:failure $exceptionMessage")
+                        Toast.makeText(
+                            activity, "Authentication failed.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        updateUI(null)
+                    }
                 }
             )
-        } else {
-            biometricPrompt.authenticate(biometricPromptInfo)
+        } catch (e: Exception){
+            if(user != null) {
+                biometricPrompt.authenticate(biometricPromptInfo)
+            }
         }
     }
 
@@ -269,8 +275,8 @@ import com.koshelenkoa.securemessaging.viewModels.AuthenticationViewModel
         fontsize: Int,
         user: FirebaseUser?,
     ) {
-        var userLogin = login.trim()
-        var password = password.trim()
+        val userLogin = login.trim()
+        val password = password.trim()
 
         Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
             Button(

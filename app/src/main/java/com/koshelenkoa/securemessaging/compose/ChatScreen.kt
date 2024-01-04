@@ -82,7 +82,6 @@ import com.koshelenkoa.securemessaging.ui.activities.ChatList
 import com.koshelenkoa.securemessaging.ui.activities.GalleryActivity
 import com.koshelenkoa.securemessaging.util.SharedPrefsHelper
 import com.koshelenkoa.securemessaging.viewModels.ChatViewModel
-import kotlinx.coroutines.CoroutineScope
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable

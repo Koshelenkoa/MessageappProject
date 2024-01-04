@@ -50,4 +50,15 @@ class MessageEncryption @Inject constructor(
         return decryptedMessages.toList()
     }
 
+    fun encryptBytes(byteArray: ByteArray): ByteArray{
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        val encryptedText = encryptor.encrypt(byteArray, cipher)
+        return encryptedText
+    }
+
+    fun decryptBytes(byteArray: ByteArray): ByteArray{
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        val decryptedText = encryptor.decrypt(byteArray, cipher)
+        return decryptedText
+    }
 }

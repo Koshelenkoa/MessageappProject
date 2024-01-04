@@ -1,5 +1,6 @@
 package com.koshelenkoa.securemessaging.services
 
+import android.net.Uri
 import android.util.Log
 import androidx.annotation.WorkerThread
 import com.koshelenkoa.securemessaging.api.RequestSchedueler
@@ -7,6 +8,9 @@ import com.koshelenkoa.securemessaging.data.local.Message
 import com.koshelenkoa.securemessaging.data.local.MessagesRepository
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.koshelenkoa.securemessaging.cryptography.MessageEncryption
+import com.koshelenkoa.securemessaging.data.local.ChatRepository
+import com.koshelenkoa.securemessaging.util.UploadManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +22,8 @@ import javax.inject.Inject
 class MyFirebaseMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var repository: MessagesRepository
+    @Inject
+    lateinit var chatRepository: ChatRepository
 
 
     private val TAG = "MyFirebaseMessagingService"
@@ -26,7 +32,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     /**
      * There are two scenarios when onNewToken is called:
      * 1) When a new token is generated on initial app startup
-     * 2) Whenever an existing token is changed
+Hi     * 2) Whenever an existing token is changed
      * Under #2, there are three scenarios when the existing token is changed:
      * A) MainApplication is restored to a new device
      * B) User uninstalls/reinstalls the app
@@ -74,7 +80,22 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         Log.d(TAG, "message received")
         val messageMap = message.data
         val message = Message(messageMap)
-        repository.createMessage(message)
+        val uploadManager = UploadManager()
+        val encryptor = MessageEncryption(chatRepository, message.chat!!)
+        val decryptedMessage = encryptor.decryptMessage(message)
+        val data = decryptedMessage.getMessageData()
+        val attachmentsUrls = data.attachments
+        var uris = emptyList<Uri>()
+        if (attachmentsUrls != null) {
+            for (url in attachmentsUrls){
+                val uriString = url?.let { uploadManager.downloadImage(it, encryptor) }
+                if (uriString != null)
+                    uris = uris.plus(uriString)
+            }
+        }
+        val localMessage = decryptedMessage.toLocalMessage(uris)
+        val encryptedMessage = encryptor.encryptMessage(localMessage)
+        repository.createMessage(encryptedMessage)
     }
 
 }

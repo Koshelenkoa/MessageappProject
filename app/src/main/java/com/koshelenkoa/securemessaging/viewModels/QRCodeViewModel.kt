@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.koshelenkoa.securemessaging.api.RequestSchedueler
+import com.koshelenkoa.securemessaging.cryptography.KeyGeneratorForKeyStore
 import com.koshelenkoa.securemessaging.data.local.ChatDataHolder
 import com.koshelenkoa.securemessaging.data.local.ChatRepository
 import com.koshelenkoa.securemessaging.util.StringForQRGenerator
@@ -19,8 +20,7 @@ val TAG = "Create QRCode"
 class QRCodeViewModel @Inject constructor(val chatRepository: ChatRepository) : ViewModel() {
     private val requestScheduler = RequestSchedueler()
     private val keystore = KeyStore.getInstance("AndroidKeyStore")
-    private val keyGeneratorForKeyStore =
-        com.koshelenkoa.securemessaging.cryptography.KeyGeneratorForKeyStore(keystore)
+    private val keyGeneratorForKeyStore = KeyGeneratorForKeyStore(keystore)
     private val stringGenerator = StringForQRGenerator(keyGeneratorForKeyStore)
     var loaded by mutableStateOf(false)
         private set

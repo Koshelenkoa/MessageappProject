@@ -6,6 +6,7 @@
 * Messages are encrypted on disk and on the server and can be read only after authorization through fingerprint
 * No personal credentials needed for authorization only login and password
 * Offline login to read messages 
+* Media stored on the Firebase Storage encrypted with hardware-stored keys and can be decrypted only by sender and addressee
 
 ## Stack
 * [Jetpack Compose](https://www.jetpackcompose.net/) for UI

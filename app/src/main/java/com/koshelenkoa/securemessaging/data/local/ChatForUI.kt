@@ -1,7 +1,5 @@
 package com.koshelenkoa.securemessaging.data.local
 
-import com.google.gson.GsonBuilder
-
 /**
  * class for presenting minimal information about the chat to UI
  */

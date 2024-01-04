@@ -31,5 +31,7 @@
     <string name="dialog_resend_title">Attempt to resend the message?</string>
     <string name="dialog_resend_button">Resend</string>
     <string name="button_attach">Attach file button</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="title_activity_gallery">GalleryActivity</string>
 
 </resources>

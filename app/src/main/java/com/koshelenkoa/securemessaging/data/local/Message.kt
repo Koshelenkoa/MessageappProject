@@ -1,10 +1,13 @@
 package com.koshelenkoa.securemessaging.data.local
 
+import android.net.Uri
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.gson.Gson
 import com.koshelenkoa.securemessaging.data.local.room.MessageItem
 import java.util.Base64
+
 
 @Entity(tableName = "messages")
 data class Message(
@@ -54,11 +57,39 @@ data class Message(
     }
 
     constructor(message: Map<String, String?>) : this(
-        message.get("messageId") ?: "-1",
-        message.get("sender"),
-        message.get("chat"),
+        message["messageId"] ?: "-1",
+        message["sender"],
+        message["chat"],
         isSent = 0,
-        message.get("timestamp")?.toLong(),
-        Base64.getDecoder().decode(message.get("data"))
+        message["timestamp"]?.toLong(),
+        Base64.getDecoder().decode(message["data"])
     )
+
+    /**
+     * TransitMessage with bitmaps as attachments to
+     * message stored in the local store with mediaStoreUris
+     */
+
+    fun toLocalMessage(attachmentsUris: List<Uri>): Message{
+        val gson = Gson()
+        val messageData = this.getMessageData()
+        val urisAsStrings = attachmentsUris.map{ uri -> uri.path?: ""}
+        val finalMessageData = MessageData(messageData.text, urisAsStrings.toTypedArray())
+        val json = gson.toJson(finalMessageData)
+        return this.copy(data = json.toByteArray())
+    }
+
+    fun toTransitMessage(attachmentsUrls: List<String>): Message{
+        val gson = Gson()
+        val messageData = this.getMessageData()
+        val finalMessageData = MessageData(messageData.text, attachmentsUrls.toTypedArray())
+        val json = gson.toJson(finalMessageData)
+        return this.copy(data = json.toByteArray())
+    }
+
+    fun getMessageData(): MessageData{
+        val gson = Gson()
+        val messageData = gson.fromJson(data?.decodeToString(), MessageData::class.java)
+        return messageData
+    }
 }
